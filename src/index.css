@@ -1,0 +1,230 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap');
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, monospace;
+
+  /* Theme custom palette for construction vibe: Deep Slate/Navy/Warm Amber accents */
+  --color-brand-sidebar: #0f172a; /* Slate 900 */
+  --color-brand-amber: #eab308; /* Amber 500 */
+  --color-brand-amber-hover: #ca8a04; /* Amber 600 */
+}
+
+/* Custom High Density UI Controls */
+html, body {
+  background-color: #f8fafc !important; /* Elegant light grey/off-white background */
+  color: #0f172a !important; /* Deep Slate text */
+  font-family: "Inter", ui-sans-serif, system-ui, sans-serif;
+  font-size: 13px; /* High density baseline */
+  letter-spacing: -0.01em;
+  scroll-behavior: smooth;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* --- FORCE COMPACT OVERALL SPACING AND CARD DENSITY --- */
+
+/* Override spacing utilities slightly to force higher density */
+.p-6, .md\:p-8 {
+  padding: 0.875rem !important; /* Compact high-density padding */
+}
+.p-8 {
+  padding: 0.875rem !important;
+}
+.space-y-8 > :not([hidden]) ~ :not([hidden]) {
+  margin-top: 0.875rem !important;
+}
+.gap-6 {
+  gap: 0.625rem !important;
+}
+.gap-8 {
+  gap: 0.875rem !important;
+}
+
+/* Cards & Containers - Restore pure white card layouts and subtle borders */
+.bg-white {
+  background-color: #ffffff !important; 
+  border-color: #e2e8f0 !important; /* slate-200 */
+  color: #0f172a !important;
+}
+
+.bg-slate-50 {
+  background-color: #f8fafc !important; 
+}
+
+.bg-slate-100 {
+  background-color: #f1f5f9 !important; /* slate-100 */
+  color: #0f172a !important;
+}
+
+.bg-slate-200 {
+  background-color: #e2e8f0 !important; /* slate-200 */
+}
+
+/* Borders and lines */
+.border-slate-200, .border-slate-100, .border-slate-200\/80 {
+  border-color: #e2e8f0 !important; 
+}
+
+.border-slate-300 {
+  border-color: #cbd5e1 !important; 
+}
+
+.divide-slate-200 > :not([hidden]) ~ :not([hidden]),
+.divide-slate-100 > :not([hidden]) ~ :not([hidden]),
+.divide-y > :not([hidden]) ~ :not([hidden]) {
+  border-color: #e2e8f0 !important;
+}
+
+/* Keep amber accent text bright and pristine */
+.text-amber-500, .text-amber-600 {
+  color: #d97706 !important; /* Darker amber for high contrast in light mode */
+}
+.text-amber-700 {
+  color: #b45309 !important;
+}
+.text-emerald-600 {
+  color: #059669 !important;
+}
+.text-emerald-550, .text-emerald-500 {
+  color: #10b981 !important;
+}
+.text-rose-600, .text-red-600 {
+  color: #dc2626 !important;
+}
+
+/* Modals & Dialog Elements for Light Theme */
+dialog, .modal-box {
+  background-color: #ffffff !important;
+  border: 1px solid #e2e8f0 !important;
+  color: #0f172a !important;
+}
+
+/* Select, Inputs, and Form elements matching light theme density */
+input[type="text"], input[type="number"], input[type="date"], input[type="email"], select, textarea {
+  background-color: #ffffff !important; 
+  border-color: #cbd5e1 !important; /* slate-350 */
+  color: #0f172a !important;
+  font-family: "Inter", sans-serif !important;
+  font-size: 11.5px !important;
+  padding: 0.35rem 0.5rem !important; /* super high density */
+  border-radius: 4px !important;
+  height: auto !important;
+}
+
+input[type="text"]:focus, select:focus, textarea:focus {
+  border-color: #d97706 !important; /* Warm Amber focus */
+  outline: none;
+  box-shadow: 0 0 0 1px rgba(217, 119, 6, 0.2);
+}
+
+/* High-density buttons */
+button {
+  border-radius: 4px !important;
+  font-size: 11.5px !important;
+  padding-top: 0.35rem !important;
+  padding-bottom: 0.35rem !important;
+}
+
+/* Tables density scale */
+th, td {
+  padding-top: 0.45rem !important;
+  padding-bottom: 0.45rem !important;
+  padding-left: 0.625rem !important;
+  padding-right: 0.625rem !important;
+  font-size: 11.5px !important;
+  border-color: #e2e8f0 !important;
+}
+
+table {
+  border-collapse: separate !important;
+  border-spacing: 0 !important;
+}
+
+tr:hover {
+  background-color: rgba(241, 245, 249, 0.6) !important; /* light hover overlay */
+}
+
+/* Badge and Label components */
+.rounded-2xl {
+  border-radius: 4px !important; /* Sharp, high density industrial */
+}
+.rounded-xl {
+  border-radius: 4px !important;
+}
+.rounded-lg {
+  border-radius: 45px !important; /* badges circle rounded-lg */
+}
+
+/* Custom Scrollbars */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: #030712;
+}
+::-webkit-scrollbar-thumb {
+  background: #1e293b;
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #334155;
+}
+
+/* Custom styled charts for high density */
+svg {
+  overflow: visible;
+}
+
+/* Custom styles for print/pdf mode */
+@media print {
+  body {
+    background-color: white !important;
+    color: black !important;
+  }
+  #app-sidebar, .no-print, header {
+    display: none !important;
+  }
+  #app-canvas-container, main {
+    padding: 0 !important;
+    margin: 0 !important;
+    max-width: 100% !important;
+    width: 100% !important;
+  }
+  .print-card {
+    border: none !important;
+    box-shadow: none !important;
+    padding: 0 !important;
+    margin: 0 !important;
+  }
+}
+
+/* Butter-Smooth transition keyframe rules */
+.animate-fade-in {
+  animation: fadeIn 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.animate-slide-up {
+  animation: slideUp 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}

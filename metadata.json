@@ -1,0 +1,6 @@
+{
+  "name": "Onsite Build-Pro",
+  "description": "High-density professional construction project management dashboard and site tracker.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
