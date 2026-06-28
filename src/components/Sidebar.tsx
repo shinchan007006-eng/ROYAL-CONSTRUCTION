@@ -13,7 +13,8 @@ import {
   Settings as SettingsIcon,
   Download,
   ClipboardList,
-  Cloud
+  Cloud,
+  Receipt
 } from 'lucide-react';
 
 interface SidebarProps {
@@ -36,7 +37,8 @@ export default function Sidebar({ currentTab, setCurrentTab, isCollapsed, setIsC
     { id: 'crm', label: 'CRM Pipeline', icon: CalendarDays },
     { id: 'schedule', label: 'Schedule / MOM', icon: FileText },
     { id: 'quotations', label: 'Quotation Engine', icon: FileSpreadsheet },
-    { id: 'photos', label: 'Site Photo Vault', icon: Camera },
+    { id: 'site-photos', label: 'Site Photo', icon: Camera },
+    { id: 'bill-photos', label: 'Bill Photo', icon: Receipt },
     { id: 'cloudsync', label: 'Cloud Backups', icon: Cloud },
     { id: 'settings', label: 'App Settings', icon: SettingsIcon },
   ];

@@ -1,0 +1,124 @@
+{
+  "entities": {
+    "Workspace": {
+      "title": "Workspace Data",
+      "description": "Consolidated workspace records for a single constructor or construction corporate administrator.",
+      "type": "object",
+      "properties": {
+        "userId": {
+          "type": "string",
+          "description": "Firebase Auth UID of the workspace owner."
+        },
+        "projects": {
+          "type": "array",
+          "description": "List of construction projects."
+        },
+        "team": {
+          "type": "array",
+          "description": "List of team member profiles."
+        },
+        "attendance": {
+          "type": "array",
+          "description": "Attendance history records."
+        },
+        "finance": {
+          "type": "array",
+          "description": "Finance entries tracking project revenues and expenses."
+        },
+        "materials": {
+          "type": "array",
+          "description": "Materials inventory list."
+        },
+        "meetings": {
+          "type": "array",
+          "description": "Minutes of context and site coordination meetings."
+        },
+        "crmLeads": {
+          "type": "array",
+          "description": "Sales leads tracking."
+        },
+        "quotations": {
+          "type": "array",
+          "description": "Draft or final invoice quotations."
+        },
+        "photos": {
+          "type": "array",
+          "description": "Site progressive scans and bill invoice attachments."
+        },
+        "settings": {
+          "type": "object",
+          "description": "Project workspace global customizations."
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server tracking timestamp of the last database modification."
+        }
+      },
+      "required": ["userId"]
+    },
+    "Backup": {
+      "title": "Cloud Backup Snapshot",
+      "description": "Historical backup entity stored directly in Firestore for users utilizing Cloud Backup mode.",
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string",
+          "description": "Descriptive backup filename with timestamp"
+        },
+        "createdTime": {
+          "type": "string",
+          "format": "date-time",
+          "description": "The precise timestamp of backup registration"
+        },
+        "size": {
+          "type": "string",
+          "description": "Approximate storage footprint in bytes"
+        },
+        "isChunked": {
+          "type": "boolean",
+          "description": "Whether the backup payload is split across multiple documents to avoid 1MB limit"
+        },
+        "numChunks": {
+          "type": "integer",
+          "description": "Total count of chunks written under subcollection"
+        },
+        "data": {
+          "type": "object",
+          "description": "The consolidated workspace database object (only populated if not chunked)"
+        }
+      },
+      "required": ["name", "createdTime", "size"]
+    },
+    "BackupChunk": {
+      "title": "Cloud Backup Payload Chunk",
+      "description": "Individually segmented string fragments of stringified workspace JSON to prevent document size exhaustion.",
+      "type": "object",
+      "properties": {
+        "index": {
+          "type": "integer",
+          "description": "Segment order number starting at zero"
+        },
+        "payload": {
+          "type": "string",
+          "description": "Sub-string piece of serialized JSON backup data"
+        }
+      },
+      "required": ["index", "payload"]
+    }
+  },
+  "firestore": {
+    "/workspaces/{userId}": {
+      "schema": "Workspace",
+      "description": "Real-time construction operational database node scoped specifically to each authenticated user."
+    },
+    "/workspaces/{userId}/backups/{backupId}": {
+      "schema": "Backup",
+      "description": "User-authored snapshot file records saved to Firebase for quick recovery and offline migrations."
+    },
+    "/workspaces/{userId}/backups/{backupId}/chunks/{chunkId}": {
+      "schema": "BackupChunk",
+      "description": "Sub-payload piece representing a portion of the serialized workspace state database."
+    }
+  }
+}

@@ -18,6 +18,8 @@ import CRM from './pages/CRM';
 import Schedule from './pages/Schedule';
 import Quotations from './pages/Quotations';
 import Photos from './pages/Photos';
+import SitePhotos from './pages/SitePhotos';
+import BillPhotos from './pages/BillPhotos';
 import CloudSync from './pages/CloudSync';
 import Settings from './pages/Settings';
 
@@ -72,6 +74,10 @@ function MainLayout() {
         return <Quotations />;
       case 'photos':
         return <Photos />;
+      case 'site-photos':
+        return <SitePhotos />;
+      case 'bill-photos':
+        return <BillPhotos />;
       case 'cloudsync':
         return <CloudSync />;
       case 'settings':
@@ -110,12 +116,47 @@ function MainLayout() {
 }
 
 export default function App() {
-  const [currentUser, setCurrentUser] = useState<User | null>(null);
+  const [currentUser, setCurrentUser] = useState<any>(null);
   const [authLoading, setAuthLoading] = useState(true);
 
   useEffect(() => {
+    const isOffline = localStorage.getItem('bt_offline_mode') === 'true';
+    if (isOffline) {
+      let offlineUser: any = null;
+      try {
+        offlineUser = JSON.parse(localStorage.getItem('bt_offline_user') || 'null');
+      } catch (e) {}
+
+      setCurrentUser({
+        uid: localStorage.getItem('bt_workspace_owner_id') || 'local-demo-workspace',
+        email: offlineUser?.email || 'local-demo@onsitebuildpro.com',
+        displayName: offlineUser?.displayName || 'Demo Administrator',
+        isAnonymous: true
+      });
+      setAuthLoading(false);
+      return;
+    }
+
     const unsubscribe = onAuthStateChanged(auth, (user) => {
-      setCurrentUser(user);
+      if (user) {
+        setCurrentUser(user);
+      } else {
+        const isStillOffline = localStorage.getItem('bt_offline_mode') === 'true';
+        if (isStillOffline) {
+          let offlineUser: any = null;
+          try {
+            offlineUser = JSON.parse(localStorage.getItem('bt_offline_user') || 'null');
+          } catch (e) {}
+          setCurrentUser({
+            uid: localStorage.getItem('bt_workspace_owner_id') || 'local-demo-workspace',
+            email: offlineUser?.email || 'local-demo@onsitebuildpro.com',
+            displayName: offlineUser?.displayName || 'Demo Administrator',
+            isAnonymous: true
+          });
+        } else {
+          setCurrentUser(null);
+        }
+      }
       setAuthLoading(false);
     });
     return () => unsubscribe();

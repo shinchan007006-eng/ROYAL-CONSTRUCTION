@@ -113,6 +113,15 @@ export interface ProjectPhoto {
   description: string;
 }
 
+export interface WorkspaceUser {
+  id: string;
+  name: string;
+  email: string;
+  password?: string;
+  role: 'Admin' | 'Estimator' | 'Supervisor' | 'Viewer';
+  isAddedUser?: boolean;
+}
+
 export interface AppSettings {
   appName: string;
   appSubtitle: string;

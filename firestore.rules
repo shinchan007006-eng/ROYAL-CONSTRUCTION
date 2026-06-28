@@ -1,0 +1,28 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Global Safety Net catch-all
+    match /{document=**} {
+      allow read, write: if false;
+    }
+    
+    // Core workspace access - allowed for any authenticated workspace owner or sub-user member
+    match /workspaces/{userId} {
+      allow read, write: if request.auth != null;
+
+      match /backups/{backupId} {
+        allow read, write: if request.auth != null;
+
+        match /chunks/{chunkId} {
+          allow read, write: if request.auth != null;
+        }
+      }
+    }
+
+    // Shared sub-users directory lookup for multi-device authentication and roster management
+    match /shared_users/{email} {
+      allow read: if true;
+      allow write: if request.auth != null;
+    }
+  }
+}

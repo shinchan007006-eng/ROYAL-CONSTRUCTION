@@ -33,7 +33,9 @@ export default function ProjectDetail({ projectId, onBack, setCurrentTab }: Proj
     meetings, 
     photos, 
     addPhoto,
-    updateProject 
+    updateProject,
+    finance,
+    addFinanceEntry
   } = useApp();
 
   // Find the focused project
@@ -45,6 +47,12 @@ export default function ProjectDetail({ projectId, onBack, setCurrentTab }: Proj
   const [photoType, setPhotoType] = useState<'Progress' | 'Bill'>('Progress');
   const [photoDesc, setPhotoDesc] = useState('');
   const [photoBase64, setPhotoBase64] = useState('');
+
+  // States for adding custom money (funding / project income with notes)
+  const [fundingAmount, setFundingAmount] = useState('');
+  const [fundingSource, setFundingSource] = useState('');
+  const [fundingNotes, setFundingNotes] = useState('');
+  const [isAddingFunding, setIsAddingFunding] = useState(false);
 
   if (!project) {
     return (
@@ -64,6 +72,10 @@ export default function ProjectDetail({ projectId, onBack, setCurrentTab }: Proj
   const projectMeetings = meetings.filter(m => m.projectId === projectId);
   const projectPhotos = photos.filter(p => p.projectId === projectId);
   
+  // Custom project funding inputs ("Income" category with this projectId)
+  const projectFundingList = (finance || []).filter(f => f.projectId === projectId && f.category === 'Income');
+  const totalFundingReceived = projectFundingList.reduce((sum, f) => sum + f.amount, 0);
+
   // Dynamic spent calculations
   const totalMaterialsCost = projectMaterials.reduce((sum, m) => sum + m.totalCost, 0);
   
@@ -73,6 +85,27 @@ export default function ProjectDetail({ projectId, onBack, setCurrentTab }: Proj
 
   const burnRatePercent = Math.round((project.spent / project.budget) * 100) || 0;
   const isOverBudget = project.spent > project.budget;
+
+  const handleAddFunding = (e: React.FormEvent) => {
+    e.preventDefault();
+    const amt = parseFloat(fundingAmount);
+    if (isNaN(amt) || amt <= 0) return;
+
+    addFinanceEntry({
+      projectId,
+      category: 'Income',
+      amount: amt,
+      vendor: fundingSource.trim() || 'Project Sponsor',
+      description: fundingNotes.trim() || 'Customized added money',
+      date: new Date().toISOString().slice(0, 10),
+      paid: true
+    });
+
+    setFundingAmount('');
+    setFundingSource('');
+    setFundingNotes('');
+    setIsAddingFunding(false);
+  };
 
   // Handle Photo uploading file picker
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -213,6 +246,10 @@ export default function ProjectDetail({ projectId, onBack, setCurrentTab }: Proj
                 <span className="text-slate-400">Total Budget Limit</span>
                 <span className="text-slate-300 font-mono">{formatRupees(project.budget)}</span>
               </div>
+              <div className="flex justify-between text-xs font-semibold border-t border-slate-850 pt-2 mt-2">
+                <span className="text-emerald-400 font-medium">Custom Funding Received</span>
+                <span className="text-emerald-400 font-mono font-bold">+{formatRupees(totalFundingReceived)}</span>
+              </div>
             </div>
           </div>
 
@@ -222,12 +259,111 @@ export default function ProjectDetail({ projectId, onBack, setCurrentTab }: Proj
               <span>Project holds cost overruns of {formatRupees(project.spent - project.budget)}! Review Materials ledger and check daily labor wages.</span>
             </div>
           )}
+
+          {/* Inline form to Add customized money with notes */}
+          <div className="pt-2 border-t border-slate-800">
+            {!isAddingFunding ? (
+              <button
+                type="button"
+                onClick={() => setIsAddingFunding(true)}
+                className="w-full bg-emerald-500 hover:bg-emerald-600 text-slate-950 hover:text-white font-extrabold text-[10px] py-2 px-3 rounded-xl flex items-center justify-center gap-1 transition-all uppercase cursor-pointer tracking-wider"
+              >
+                <span>➕ Add Capital / Money Received</span>
+              </button>
+            ) : (
+              <form onSubmit={handleAddFunding} className="space-y-2.5 text-left pt-1 font-sans">
+                <div className="flex justify-between items-center text-[10px] font-bold text-slate-400 uppercase">
+                  <span>Add Project Income</span>
+                  <button 
+                    type="button" 
+                    onClick={() => setIsAddingFunding(false)} 
+                    className="text-slate-450 hover:text-amber-400 font-bold"
+                  >
+                    Cancel
+                  </button>
+                </div>
+                <div className="space-y-1">
+                  <input
+                    type="number"
+                    required
+                    placeholder="Amount to Add (₹ INR)"
+                    value={fundingAmount}
+                    onChange={(e) => setFundingAmount(e.target.value)}
+                    className="w-full bg-slate-800 border border-slate-705 text-white placeholder-slate-500 text-[11px] py-1.5 px-2 rounded-lg focus:outline-hidden focus:border-emerald-400 font-mono font-bold"
+                  />
+                </div>
+                <div className="space-y-1">
+                  <input
+                    type="text"
+                    placeholder="Source (e.g. Owner Capital, Milestone 2)"
+                    value={fundingSource}
+                    onChange={(e) => setFundingSource(e.target.value)}
+                    className="w-full bg-slate-800 border border-slate-705 text-white placeholder-slate-500 text-[11px] py-1.5 px-2 rounded-lg focus:outline-hidden focus:border-emerald-400 font-medium"
+                    required
+                  />
+                </div>
+                <div className="space-y-1">
+                  <textarea
+                    placeholder="Custom Funding Notes or Remarks..."
+                    value={fundingNotes}
+                    onChange={(e) => setFundingNotes(e.target.value)}
+                    rows={2}
+                    className="w-full bg-slate-800 border border-slate-705 text-white placeholder-slate-500 text-[11px] py-1.5 px-2 rounded-lg focus:outline-hidden focus:border-emerald-400 resize-none"
+                    required
+                  />
+                </div>
+                <button
+                  type="submit"
+                  className="w-full bg-emerald-500 hover:bg-emerald-600 text-slate-950 font-bold text-[10px] py-2 px-3 rounded-xl flex items-center justify-center gap-1 transition-all uppercase cursor-pointer tracking-widest"
+                >
+                  Confirm & Add Money
+                </button>
+              </form>
+            )}
+          </div>
         </div>
       </div>
 
       {/* Grid of related sub-datasets */}
       <div id="detail-related-datasets" className="grid grid-cols-1 lg:grid-cols-2 gap-8">
         
+        {/* customized funding received ledger card */}
+        <div id="detail-funding-card" className="bg-white p-6 rounded-2xl border border-slate-205 shadow-xs space-y-4">
+          <div className="flex items-center justify-between mb-2">
+            <h3 className="font-bold text-slate-900 text-md flex items-center gap-2">
+              <IndianRupee className="w-5 h-5 text-emerald-500" />
+              <span>Custom Funding & Capital Addition Logs ({projectFundingList.length})</span>
+            </h3>
+            <span className="text-xs font-mono font-bold bg-emerald-50 text-emerald-700 px-2.5 py-1 rounded border border-emerald-100">
+              Total Added: {formatRupees(totalFundingReceived)}
+            </span>
+          </div>
+
+          <div className="overflow-y-auto max-h-[220px] space-y-2.5">
+            {projectFundingList.length > 0 ? (
+              projectFundingList.slice().reverse().map(item => (
+                <div key={item.id} className="p-3 bg-slate-50 border border-slate-150 rounded-xl space-y-1 text-xs text-left">
+                  <div className="flex justify-between items-center">
+                    <span className="font-bold text-slate-800">{item.vendor}</span>
+                    <span className="font-mono font-extrabold text-emerald-600">+{formatRupees(item.amount)}</span>
+                  </div>
+                  <p className="text-[11px] text-slate-600 italic bg-white p-2 rounded-lg border border-slate-100 font-sans leading-relaxed">
+                    <strong>Funding Notes:</strong> "{item.description}"
+                  </p>
+                  <div className="flex justify-between text-[9px] text-slate-400 font-mono pt-0.5">
+                    <span>Voucher ID: {item.id}</span>
+                    <span>Received Date: {item.date}</span>
+                  </div>
+                </div>
+              ))
+            ) : (
+              <p className="text-xs text-slate-400 py-10 text-center font-medium italic">
+                No custom funding additions or milestone payments recorded yet. Use the sidebar controller to add funds with custom notes.
+              </p>
+            )}
+          </div>
+        </div>
+
         {/* materials section */}
         <div id="detail-materials-card" className="bg-white p-6 rounded-2xl border border-slate-205 shadow-xs space-y-4">
           <div className="flex items-center justify-between mb-2">
@@ -358,13 +494,23 @@ export default function ProjectDetail({ projectId, onBack, setCurrentTab }: Proj
               <Camera className="w-5 h-5 text-amber-500" />
               <span>Camera Logs & Invoice Bill Copies ({projectPhotos.length})</span>
             </h3>
-            <button 
-              id="btn-goto-photos-all"
-              onClick={() => setCurrentTab('photos')}
-              className="text-amber-600 hover:text-amber-700 font-semibold text-xs transition-all"
-            >
-              Configure Master Vault →
-            </button>
+            <div className="flex items-center gap-3">
+              <button 
+                id="btn-goto-site-photos"
+                onClick={() => setCurrentTab('site-photos')}
+                className="text-amber-650 hover:text-amber-700 font-bold text-xs transition-all"
+              >
+                Site Photos →
+              </button>
+              <span className="text-slate-300">|</span>
+              <button 
+                id="btn-goto-bill-photos"
+                onClick={() => setCurrentTab('bill-photos')}
+                className="text-indigo-600 hover:text-indigo-700 font-bold text-xs transition-all"
+              >
+                Bill Photos →
+              </button>
+            </div>
           </div>
 
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">

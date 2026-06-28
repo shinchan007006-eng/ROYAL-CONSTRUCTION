@@ -17,7 +17,7 @@ import {
   Cloud
 } from 'lucide-react';
 import { Quotation, QuotationItem } from '../types';
-import { getAccessToken, googleSignIn } from '../lib/firebase';
+import { getAccessToken, googleSignInWithDrive } from '../lib/firebase';
 
 function generateFullInvoiceHtml(quote: Quotation, settings: any, formatRupees: (amount: number) => string) {
   const subtotal = quote.items.reduce((sum, i) => sum + i.lineTotal, 0);
@@ -387,7 +387,7 @@ export default function Quotations() {
 
   // Google Drive integrations
   const [isUploadingToDrive, setIsUploadingToDrive] = useState(false);
-  const [driveSyncMessage, setDriveSyncMessage] = useState<{ success?: string; error?: string }>({});
+  const [driveSyncMessage, setDriveSyncMessage] = useState<{ success?: string; error?: string; invoiceUrl?: string }>({});
 
   // Form States for creating a custom quotation
   const [qNumber, setQNumber] = useState(() => `QT-${new Date().getFullYear()}-${Math.floor(100 + Math.random() * 900)}`);
@@ -528,7 +528,7 @@ export default function Quotations() {
           setIsUploadingToDrive(false);
           return;
         }
-        const authRes = await googleSignIn();
+        const authRes = await googleSignInWithDrive();
         if (!authRes?.accessToken) {
           throw new Error("Failed to authenticate with Google Account.");
         }
@@ -557,7 +557,7 @@ export default function Quotations() {
         htmlContent +
         closeDelimiter;
 
-      const uploadUrl = 'https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart';
+      const uploadUrl = 'https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart&fields=id,name,webViewLink';
       const response = await fetch(uploadUrl, {
         method: 'POST',
         headers: {
@@ -571,11 +571,21 @@ export default function Quotations() {
         throw new Error(`Google Drive API returned response error: ${response.status}`);
       }
 
-      setDriveSyncMessage({ success: `Excellent! Invoice "${backupFilename}" successfully exported and backed up inside your Google Drive.` });
-      setTimeout(() => setDriveSyncMessage({}), 10000);
+      const uploadData = await response.json();
+      const invoiceUrl = uploadData.webViewLink || `https://drive.google.com/file/d/${uploadData.id}/view?usp=drivesdk`;
+
+      setDriveSyncMessage({ 
+        success: `Excellent! Invoice "${backupFilename}" successfully exported and backed up inside your Google Drive.`,
+        invoiceUrl: invoiceUrl
+      });
+      setTimeout(() => setDriveSyncMessage({}), 20000);
     } catch (err: any) {
       console.error('Google Drive invoice backup failed:', err);
-      setDriveSyncMessage({ error: `Upload Failed: ${err.message || err}` });
+      let errMsg = err.message || String(err);
+      if (errMsg.includes('popup-closed-by-user') || errMsg.includes('access_denied') || errMsg.includes('cancelled-popup-request') || errMsg.includes('auth/')) {
+        errMsg = "Authentication blocked/closed. Make sure your Google Email is added as a 'Test User' in your Google Cloud Console, or check instructions on the 'Cloud Sync' page.";
+      }
+      setDriveSyncMessage({ error: `Upload Failed: ${errMsg}` });
     } finally {
       setIsUploadingToDrive(false);
     }
@@ -651,8 +661,21 @@ export default function Quotations() {
             </div>
 
             {driveSyncMessage.success && (
-              <div className="bg-emerald-50 border border-emerald-150 p-3 rounded-xl text-emerald-800 text-[11px] font-semibold animate-fade-in">
-                {driveSyncMessage.success}
+              <div className="bg-emerald-50 border border-emerald-150 p-3 rounded-xl text-emerald-800 text-[11px] font-semibold animate-fade-in space-y-2">
+                <div>{driveSyncMessage.success}</div>
+                {driveSyncMessage.invoiceUrl && (
+                  <div className="pt-1.5">
+                    <a
+                      href={driveSyncMessage.invoiceUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-blue-600 hover:text-blue-800 font-extrabold hover:underline inline-flex items-center gap-1.5 bg-white border border-slate-200 py-1.5 px-3 rounded-lg shadow-xs"
+                    >
+                      <ExternalLink className="w-3.5 h-3.5 text-blue-500 shrink-0" />
+                      <span>Open Exported Invoice in Drive ↗</span>
+                    </a>
+                  </div>
+                )}
               </div>
             )}
             {driveSyncMessage.error && (
